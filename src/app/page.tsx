@@ -27,6 +27,7 @@ import {
 } from "react";
 import { ChatCompletionStream } from "together-ai/lib/ChatCompletionStream.mjs";
 import { z } from "zod";
+import { ErrorBoundary } from "@/components/error-boundary";
 import saveBattle from "./actions";
 import { models } from "./models";
 
@@ -369,44 +370,52 @@ function Result({
           </TabsList>
         </div>
         <div className="mt-2">
-          <SandpackProvider
-            files={{ "App.tsx": app.trimmedCode }}
-            template="react-ts"
-            theme={dracula}
-            options={{
-              externalResources: [
-                "https://unpkg.com/@tailwindcss/ui/dist/tailwind-ui.min.css",
-              ],
-            }}
+          <ErrorBoundary
+            fallback={
+              <div className="flex aspect-square items-center justify-center bg-gray-100 p-4 text-center text-sm text-gray-600">
+                Unable to render code preview. Please check the code tab.
+              </div>
+            }
           >
-            {app.status === "complete" && (
+            <SandpackProvider
+              files={{ "App.tsx": app.trimmedCode }}
+              template="react-ts"
+              theme={dracula}
+              options={{
+                externalResources: [
+                  "https://unpkg.com/@tailwindcss/ui/dist/tailwind-ui.min.css",
+                ],
+              }}
+            >
+              {app.status === "complete" && (
+                <TabsContent
+                  value="preview"
+                  forceMount
+                  className="data-[state=inactive]:hidden"
+                >
+                  <SandpackPreview
+                    key={app.trimmedCode}
+                    showNavigator={false}
+                    showOpenInCodeSandbox={false}
+                    showRefreshButton={false}
+                    showRestartButton={false}
+                    showOpenNewtab={false}
+                    className="aspect-square w-full"
+                  />
+                </TabsContent>
+              )}
               <TabsContent
-                value="preview"
+                value="code"
                 forceMount
                 className="data-[state=inactive]:hidden"
               >
-                <SandpackPreview
-                  key={app.trimmedCode}
-                  showNavigator={false}
-                  showOpenInCodeSandbox={false}
-                  showRefreshButton={false}
-                  showRestartButton={false}
-                  showOpenNewtab={false}
-                  className="aspect-square w-full"
+                <SandpackCodeEditor
+                  readOnly
+                  className={`aspect-square ${app.status === "generating" ? "[&_.cm-scroller]:flex-col-reverse" : ""} overflow-hidden [&_.cm-line]:text-[13px]`}
                 />
               </TabsContent>
-            )}
-            <TabsContent
-              value="code"
-              forceMount
-              className="data-[state=inactive]:hidden"
-            >
-              <SandpackCodeEditor
-                readOnly
-                className={`aspect-square ${app.status === "generating" ? "[&_.cm-scroller]:flex-col-reverse" : ""} overflow-hidden [&_.cm-line]:text-[13px]`}
-              />
-            </TabsContent>
-          </SandpackProvider>
+            </SandpackProvider>
+          </ErrorBoundary>
         </div>
       </Tabs>
     </div>
