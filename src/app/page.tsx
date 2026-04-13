@@ -350,7 +350,7 @@ function Result({
       <Tabs value={selectedTab} onValueChange={onTabSelect}>
         <div className="relative flex items-center">
           <p className="absolute truncate text-center text-gray-900 lg:w-full">
-            {placeholder}
+            {app ? app.model.shortLabel : placeholder}
           </p>
           <TabsList className="relative ml-auto h-auto bg-white p-0">
             <TabsTrigger
